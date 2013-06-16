@@ -103,25 +103,38 @@ struct {
 	int segment;
 } lathe;
 
-void createVertexArray( MQObject obj, std::vector< glm::vec3 >& vertices )
+void createVertexArray( MQObject obj, std::vector< glm::vec3 >& vertices, int objID, std::vector<MQSelectFace>& ids )
 {
 	int face_count = obj->GetFaceCount();
 	int vert_count = obj->GetVertexCount();
 
-	int vert_index[3];
+	int vert_index[4];
 
 	for(int i=0; i<face_count; i++)
 	{
 		int count = obj->GetFacePointCount(i);
-		if(count != 3)
+		if (count != 3 && count != 4)
 			continue;
 		
-		// 独立した頂点を追加
 		obj->GetFacePointArray(i, vert_index);
-		for (int vert=0; vert<count; ++vert)
+		if (count == 3)
 		{
-			auto v = obj->GetVertex(vert_index[vert]);
+			for (int vert=0; vert<3; ++vert)
+			{
+				auto v = obj->GetVertex(vert_index[vert]);
+				vertices.push_back(glm::vec3(v.x, v.y, v.z));
+			}
+			ids.push_back( MQSelectFace(objID, i) );
+		}
+		if (count == 4)
+		{
+			auto v = obj->GetVertex(vert_index[0]);
 			vertices.push_back(glm::vec3(v.x, v.y, v.z));
+			v = obj->GetVertex(vert_index[2]);
+			vertices.push_back(glm::vec3(v.x, v.y, v.z));
+			v = obj->GetVertex(vert_index[3]);
+			vertices.push_back(glm::vec3(v.x, v.y, v.z));
+			ids.push_back( MQSelectFace(objID, i) );
 		}
 	}
 }
@@ -134,6 +147,7 @@ BOOL CollisionDetect(MQDocument doc)
 	BOOL result = FALSE;
 
 	std::vector<MQObject> selectedObjs;
+	std::vector<int> selectedObjIDs;
 	int obj_count = doc->GetObjectCount();
 	for (int i=0; i<obj_count; ++i)
 	{
@@ -141,6 +155,7 @@ BOOL CollisionDetect(MQDocument doc)
 		if(obj == NULL)
 			continue;
 		selectedObjs.push_back(obj);
+		selectedObjIDs.push_back(i);
 	}
 
 	if (selectedObjs.size() != 2) {
@@ -152,24 +167,26 @@ BOOL CollisionDetect(MQDocument doc)
 
 	std::vector< glm::vec3 > vertices1;
 	std::vector< glm::vec3 > vertices2;
+	std::vector< MQSelectFace > ids1;
+	std::vector< MQSelectFace > ids2;
 
-	createVertexArray(obj1, vertices1);
-	createVertexArray(obj2, vertices2);
+	createVertexArray(obj1, vertices1, selectedObjIDs[0], ids1);
+	createVertexArray(obj2, vertices2, selectedObjIDs[1], ids2);
 
-	auto aabbTree1 = std::unique_ptr<AABBNode>(CreateAABBTree(vertices1));
-	auto aabbTree2 = std::unique_ptr<AABBNode>(CreateAABBTree(vertices2));
+	auto aabbTree1 = std::unique_ptr< AABBTree<MQSelectFace> >(new AABBTree<MQSelectFace> );
+	auto aabbTree2 = std::unique_ptr< AABBTree<MQSelectFace> >(new AABBTree<MQSelectFace> );
+	aabbTree1->CreateAABBTree(vertices1, ids1);
+	aabbTree2->CreateAABBTree(vertices2, ids2);
 
-	std::vector< std::pair<AABBNode*, AABBNode*> > results;
-	CollisionDetection(aabbTree1.get(), aabbTree2.get(), results);
+	std::vector< std::pair<MQSelectFace, MQSelectFace> > results;
+	aabbTree1->CollisionDetection(aabbTree2.get(), results);
 
 	doc->ClearSelect(MQDOC_CLEARSELECT_FACE);
 	for (int i=0; i < results.size(); ++i)
 	{
 		auto collisionItem  = results[i];
-		//doc->AddSelectFace(obj1->GetUniqueID(), collisionItem.first->id);
-		//doc->AddSelectFace(obj2->GetUniqueID(), collisionItem.second->id);
-		doc->AddSelectFace(0, collisionItem.first->id);
-		doc->AddSelectFace(1, collisionItem.second->id);
+		doc->AddSelectFace(collisionItem.first.object, collisionItem.first.face);
+		doc->AddSelectFace(collisionItem.second.object, collisionItem.second.face);
 	}
 	
 	return result;
