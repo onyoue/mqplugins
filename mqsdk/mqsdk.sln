@@ -2,6 +2,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImportStl", "ImportStl\ImportStl.vcxproj", "{6A65A9AB-A23B-445B-8894-362EBF18C36C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CollisionDetection", "CollisionDetection\CollisionDetection.vcxproj", "{789950B5-03DB-49A0-86F0-F45C633D65B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -12,6 +14,10 @@ Global
 		{6A65A9AB-A23B-445B-8894-362EBF18C36C}.Debug|Win32.Build.0 = Debug|Win32
 		{6A65A9AB-A23B-445B-8894-362EBF18C36C}.Release|Win32.ActiveCfg = Release|Win32
 		{6A65A9AB-A23B-445B-8894-362EBF18C36C}.Release|Win32.Build.0 = Release|Win32
+		{789950B5-03DB-49A0-86F0-F45C633D65B8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{789950B5-03DB-49A0-86F0-F45C633D65B8}.Debug|Win32.Build.0 = Debug|Win32
+		{789950B5-03DB-49A0-86F0-F45C633D65B8}.Release|Win32.ActiveCfg = Release|Win32
+		{789950B5-03DB-49A0-86F0-F45C633D65B8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
